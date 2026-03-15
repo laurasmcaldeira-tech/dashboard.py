@@ -3,14 +3,14 @@ import pandas as pd
 import plotly.express as px
 
 # -------------------------
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIGURAÇÃO
 # -------------------------
-st.set_page_config(page_title="(Nome da Empresa)", layout="wide")
+st.set_page_config(page_title="Wine Sales Dashboard", layout="wide")
 
 COLOR_PRIMARY = "#7B1E3A"
 COLOR_SECONDARY = "#C49A6C"
 
-st.title("🍷 (Nome da Empresa)")
+st.title("🍷 Wine Sales Dashboard")
 st.caption("Garrafeira B2B – Dashboard de Vendas")
 
 st.markdown("---")
@@ -19,13 +19,18 @@ st.markdown("---")
 # CARREGAR DADOS
 # -------------------------
 sales = pd.read_excel(
-    "wine_dashboard_fictitious_data_dashboard_full.xlsx",
+    "wine_dashboard_fictitious_data_full_with_leads.xlsx",
     sheet_name="sales"
 )
 
 clients = pd.read_excel(
-    "wine_dashboard_fictitious_data_dashboard_full.xlsx",
+    "wine_dashboard_fictitious_data_full_with_leads.xlsx",
     sheet_name="clients"
+)
+
+leads = pd.read_excel(
+    "wine_dashboard_fictitious_data_full_with_leads.xlsx",
+    sheet_name="leads"
 )
 
 sales["date"] = pd.to_datetime(sales["date"])
@@ -33,7 +38,7 @@ sales["year"] = sales["date"].dt.year
 sales["month"] = sales["date"].dt.month
 
 # -------------------------
-# SIDEBAR FILTROS
+# FILTROS
 # -------------------------
 st.sidebar.header("Filtros")
 
@@ -61,20 +66,11 @@ selected_retail = st.sidebar.multiselect(
     default=retail_types
 )
 
-if not selected_years:
-    st.warning("Selecione pelo menos um ano.")
-    st.stop()
-
-# -------------------------
-# FILTRAR DATAFRAME
-# -------------------------
 sales_filtered = sales[
     (sales["year"].isin(selected_years)) &
     (sales["region"].isin(selected_regions)) &
     (sales["retail_type"].isin(selected_retail))
 ]
-
-
 
 # -------------------------
 # KPIs
@@ -97,12 +93,24 @@ prev_sales = sales[sales["year"] == prev_year]["revenue"].sum()
 
 growth = ((current_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
 
-col1, col2, col3, col4 = st.columns(4)
+# -------------------------
+# TAXA DE CONVERSÃO
+# -------------------------
+leads_filtered = leads[leads["year"].isin(selected_years)]
+
+total_leads = len(leads_filtered)
+
+converted_leads = leads_filtered["converted"].sum()
+
+conversion_rate = converted_leads / total_leads if total_leads > 0 else 0
+
+col1, col2, col3, col4, col5 = st.columns(5)
 
 col1.metric("Vendas Totais (€)", f"{total_sales:,.0f}")
 col2.metric("Crescimento (%)", f"{growth:.1f}%")
 col3.metric("Número de Clientes", num_clients)
 col4.metric("Ticket Médio (€)", f"{ticket_medio:,.2f}")
+col5.metric("Taxa de Conversão", f"{conversion_rate*100:.1f}%")
 
 st.markdown("---")
 
@@ -147,9 +155,6 @@ st.markdown("---")
 # -------------------------
 st.header("📈 Evolução das Vendas")
 
-# -------------------------
-# Evolução mensal
-# -------------------------
 monthly_sales = (
     sales_filtered
     .groupby(["year", "month"])["revenue"]
@@ -168,25 +173,14 @@ fig_month = px.line(
 
 fig_month.update_traces(line=dict(width=3))
 
-fig_month.update_layout(
-    xaxis_title="Mês",
-    yaxis_title="Vendas (€)"
-)
-
 st.plotly_chart(fig_month, width="stretch")
 
-
-# -------------------------
-# Comparação anual
-# -------------------------
 year_sales = (
     sales_filtered
     .groupby("year")["revenue"]
     .sum()
     .reset_index()
 )
-
-year_sales = year_sales.sort_values("year")
 
 fig_year = px.bar(
     year_sales,
@@ -196,13 +190,7 @@ fig_year = px.bar(
     title="Comparação de Vendas por Ano"
 )
 
-# garantir apenas anos inteiros no eixo
 fig_year.update_xaxes(type="category")
-
-fig_year.update_layout(
-    xaxis_title="Ano",
-    yaxis_title="Vendas (€)"
-)
 
 st.plotly_chart(fig_year, width="stretch")
 
@@ -258,9 +246,6 @@ st.markdown("---")
 # -------------------------
 st.header("👥 Clientes")
 
-# -------------------------
-# Novos clientes por ano
-# -------------------------
 new_clients = (
     clients
     .groupby("start_year")
@@ -268,10 +253,7 @@ new_clients = (
     .reset_index(name="new_clients")
 )
 
-# aplicar filtro de anos selecionados
 new_clients = new_clients[new_clients["start_year"].isin(selected_years)]
-
-new_clients = new_clients.sort_values("start_year")
 
 fig_clients = px.bar(
     new_clients,
@@ -281,17 +263,7 @@ fig_clients = px.bar(
     title="Número de Novos Clientes por Ano"
 )
 
-fig_clients.update_layout(
-    xaxis_title="Ano",
-    yaxis_title="Novos Clientes"
-)
-
 fig_clients.update_xaxes(type="category")
-
-# -------------------------
-# TOP 3 clientes
-# -------------------------
-medals = ["🥇", "🥈", "🥉"]
 
 col1, col2 = st.columns(2)
 
@@ -301,6 +273,8 @@ with col1:
 with col2:
 
     st.subheader("🏆 Top 3 Clientes por Vendas")
+
+    medals = ["🥇", "🥈", "🥉"]
 
     for year in selected_years:
 
@@ -337,4 +311,4 @@ with col2:
             table,
             use_container_width=True,
             hide_index=True
-        )
+        ))
