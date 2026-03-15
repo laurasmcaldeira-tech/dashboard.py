@@ -19,7 +19,7 @@ COLOR_SECONDARY = "#C49A6C"   # dourado
 
 # caminho para o logótipo
 BASE_DIR = os.path.dirname(__file__)
-LOGO_PATH = os.path.join(BASE_DIR, "assets", "Logo Cepula.png")
+LOGO_PATH = os.path.join(BASE_DIR, "Logo Cepula.jpeg")
 
 # -------------------------
 # CABEÇALHO DO DASHBOARD
