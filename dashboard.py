@@ -5,9 +5,9 @@ import plotly.express as px
 # -------------------------
 # Configuração da página
 # -------------------------
-st.set_page_config(page_title="Wine Sales Dashboard", layout="wide")
+st.set_page_config(page_title="(Nome da empresa)", layout="wide")
 
-st.title("Wine Sales Dashboard")
+st.title("(Nome da empresa)")
 st.caption("Garrafeira B2B – Dashboard de Vendas")
 
 # -------------------------
