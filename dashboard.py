@@ -236,6 +236,8 @@ st.markdown("---")
 # -------------------------
 st.header("🏆 Top 10 Clientes por Vendas")
 
+medals = ["🥇", "🥈", "🥉"]
+
 for year in selected_years:
 
     st.subheader(f"📅 Ano {year}")
@@ -252,6 +254,14 @@ for year in selected_years:
         ascending=False
     ).head(10)
 
+    # criar ranking
+    top_clients["Ranking"] = range(1, len(top_clients) + 1)
+
+    # medalhas para top 3
+    top_clients["Posição"] = top_clients["Ranking"].apply(
+        lambda x: medals[x-1] if x <= 3 else f"{x}º"
+    )
+
     top_clients = top_clients.rename(
         columns={
             "client_id": "Cliente ID",
@@ -259,14 +269,15 @@ for year in selected_years:
         }
     )
 
-    top_clients.insert(0, "Ranking", range(1, len(top_clients)+1))
-
+    # formatar euros
     top_clients["Vendas (€)"] = top_clients["Vendas (€)"].map(
         lambda x: f"€{x:,.0f}"
     )
 
+    table = top_clients[["Posição", "Cliente ID", "Vendas (€)"]]
+
     st.dataframe(
-        top_clients,
+        table,
         use_container_width=True,
         hide_index=True
     )
