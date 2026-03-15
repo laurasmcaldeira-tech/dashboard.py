@@ -234,11 +234,11 @@ st.markdown("---")
 # -------------------------
 # TOP 10 CLIENTES POR ANO
 # -------------------------
-st.subheader("Top 10 Clientes por Vendas")
+st.header("🏆 Top 10 Clientes por Vendas")
 
 for year in selected_years:
 
-    st.markdown(f"### Ano {year}")
+    st.subheader(f"📅 Ano {year}")
 
     top_clients = (
         sales_filtered[sales_filtered["year"] == year]
@@ -259,8 +259,24 @@ for year in selected_years:
         }
     )
 
+    # adicionar ranking
+    top_clients.insert(0, "Ranking", range(1, len(top_clients)+1))
+
+    # formatação da tabela
+    styled_table = (
+        top_clients.style
+        .format({"Vendas (€)": "€{:,.0f}"})
+        .background_gradient(
+            subset=["Vendas (€)"],
+            cmap="Reds"
+        )
+        .set_properties(**{
+            "text-align": "center"
+        })
+    )
+
     st.dataframe(
-        top_clients,
+        styled_table,
         use_container_width=True,
         hide_index=True
     )
