@@ -24,16 +24,20 @@ LOGO_PATH = os.path.join(BASE_DIR, "assets", "logo.png")
 # -------------------------
 # CABEÇALHO DO DASHBOARD
 # -------------------------
+
+logo_path = "assets/logo.png"
+
 col1, col2 = st.columns([1,4])
 
 with col1:
-    st.image(LOGO_PATH, width=120)
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=120)
 
 with col2:
     st.title("Wine Sales Dashboard")
     st.caption("Garrafeira B2B – Dashboard de Vendas")
 
-st.markdown("---")
+st.markdown("---")markdown("---")
 
 # -------------------------
 # CARREGAR DADOS
