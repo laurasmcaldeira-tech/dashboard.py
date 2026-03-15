@@ -5,28 +5,28 @@ import plotly.express as px
 # -------------------------
 # Configuração da página
 # -------------------------
-st.set_page_config(page_title="(nome da empresa)", layout="wide")
+st.set_page_config(page_title="Wine Sales Dashboard", layout="wide")
 
-st.title("(nome da empresa) Dashboard")
-st.markdown("Garrafeira B2B – Análise de Vendas")
+st.title("Wine Sales Dashboard")
+st.caption("Garrafeira B2B – Dashboard de Vendas")
 
 # -------------------------
 # Carregar dados
 # -------------------------
-sales = pd.read_excel("wine_dashboard_fictitious_data_5years.xlsx", sheet_name="sales")
-clients = pd.read_excel("wine_dashboard_fictitious_data_5years.xlsx", sheet_name="clients")
+sales = pd.read_excel("wine_dashboard_fictitious_data_dashboard_full.xlsx", sheet_name="sales")
+clients = pd.read_excel("wine_dashboard_fictitious_data_dashboard_full.xlsx", sheet_name="clients")
 
-# -------------------------
-# Converter data
-# -------------------------
 sales["date"] = pd.to_datetime(sales["date"])
+sales["year"] = sales["date"].dt.year
+sales["month"] = sales["date"].dt.month
 
 # -------------------------
-# Filtro de anos
+# SIDEBAR FILTROS
 # -------------------------
 st.sidebar.header("Filtros")
 
-years = sorted(sales["date"].dt.year.unique())
+# filtro anos
+years = sorted(sales["year"].unique())
 
 selected_years = st.sidebar.multiselect(
     "Selecionar anos",
@@ -34,12 +34,38 @@ selected_years = st.sidebar.multiselect(
     default=years
 )
 
+# filtro região
+regions = sorted(sales["region"].unique())
+
+selected_regions = st.sidebar.multiselect(
+    "Selecionar região",
+    regions,
+    default=regions
+)
+
+# filtro tipo cliente
+retail_types = sorted(sales["retail_type"].unique())
+
+selected_retail = st.sidebar.multiselect(
+    "Tipo de cliente",
+    retail_types,
+    default=retail_types
+)
+
 if not selected_years:
     st.warning("Selecione pelo menos um ano.")
     st.stop()
 
-# Filtrar dataframe
-sales_filtered = sales[sales["date"].dt.year.isin(selected_years)]
+# -------------------------
+# FILTRO DATAFRAME
+# -------------------------
+sales_filtered = sales[
+    (sales["year"].isin(selected_years)) &
+    (sales["region"].isin(selected_regions)) &
+    (sales["retail_type"].isin(selected_retail))
+]
+
+st.caption(f"Anos selecionados: {selected_years}")
 
 # -------------------------
 # KPIs
@@ -52,9 +78,7 @@ num_clients = sales_filtered["client_id"].nunique()
 
 ticket_medio = total_sales / num_orders if num_orders > 0 else 0
 
-freq_compra = num_orders / num_clients if num_clients > 0 else 0
-
-# Crescimento vs ano anterior
+# crescimento vs ano anterior
 current_year = max(selected_years)
 prev_year = current_year - 1
 
@@ -63,40 +87,53 @@ prev_sales = sales[sales["year"] == prev_year]["revenue"].sum()
 
 growth = ((current_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
 
-# Objetivo de crescimento +20%
-target_sales = prev_sales * 1.2
-progress = current_sales / target_sales if target_sales > 0 else 0
-
 # -------------------------
 # Mostrar KPIs
 # -------------------------
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("Vendas Totais (€)", f"{total_sales:,.0f}")
 col2.metric("Crescimento (%)", f"{growth:.1f}%")
 col3.metric("Número de Clientes", num_clients)
 col4.metric("Ticket Médio (€)", f"{ticket_medio:,.2f}")
-col5.metric("Frequência Compra", f"{freq_compra:.2f}")
 
 st.divider()
 
 # -------------------------
-# Vendas vs objetivo
+# OBJETIVO 2026 (+20%)
 # -------------------------
-st.subheader("Vendas vs Objetivo (+20%)")
+st.subheader("Vendas vs Objetivo 2026 (+20%)")
 
-progress_value = min(progress, 1.0)
+sales_2025 = sales[sales["year"] == 2025]["revenue"].sum()
+target_2026 = sales_2025 * 1.20
 
-st.progress(progress_value)
+sales_2026 = sales[sales["year"] == 2026]
+sales_2026_ytd = sales_2026["revenue"].sum()
 
-st.write(f"Objetivo: €{target_sales:,.0f}")
-st.write(f"Vendas atuais: €{total_sales:,.0f}")
+current_month = sales_2026["month"].max()
+
+expected_progress = current_month / 12
+expected_sales = target_2026 * expected_progress
+
+performance_ratio = sales_2026_ytd / expected_sales if expected_sales > 0 else 0
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Objetivo anual 2026", f"€{target_2026:,.0f}")
+col2.metric("Esperado até agora", f"€{expected_sales:,.0f}")
+col3.metric("Vendas atuais 2026", f"€{sales_2026_ytd:,.0f}")
+
+st.progress(min(performance_ratio, 1.0))
+
+st.metric(
+    "Performance vs esperado",
+    f"{performance_ratio*100:.1f}%"
+)
 
 st.divider()
 
-
 # -------------------------
-# Evolução mensal das vendas
+# EVOLUÇÃO MENSAL
 # -------------------------
 st.subheader("Evolução das Vendas (Mensal)")
 
@@ -119,11 +156,16 @@ fig_month = px.line(
 st.plotly_chart(fig_month, width="stretch")
 
 # -------------------------
-# Comparação entre anos
+# COMPARAÇÃO ANUAL
 # -------------------------
 st.subheader("Comparação de Vendas por Ano")
 
-year_sales = sales.groupby("year")["revenue"].sum().reset_index()
+year_sales = (
+    sales_filtered
+    .groupby("year")["revenue"]
+    .sum()
+    .reset_index()
+)
 
 fig_year = px.bar(
     year_sales,
@@ -132,49 +174,71 @@ fig_year = px.bar(
     title="Vendas Totais por Ano"
 )
 
-st.plotly_chart(fig_year, use_container_width=True)
+st.plotly_chart(fig_year, width="stretch")
 
 # -------------------------
-# Frequência de compra
+# VENDAS POR REGIÃO
 # -------------------------
-st.subheader("Frequência de Compra dos Clientes")
+st.subheader("Vendas por Região")
 
-# número de encomendas por cliente
-orders_per_client = (
+sales_region = (
     sales_filtered
-    .groupby("client_id")["order_id"]
-    .count()
-    .reset_index(name="num_orders")
+    .groupby("region")["revenue"]
+    .sum()
+    .reset_index()
 )
 
-# criar faixas de frequência
-bins = [0, 1, 3, 6, 100]
-labels = ["1 compra", "2-3 compras", "4-6 compras", "7+ compras"]
-
-orders_per_client["frequency_group"] = pd.cut(
-    orders_per_client["num_orders"],
-    bins=bins,
-    labels=labels
+fig_region = px.bar(
+    sales_region,
+    x="region",
+    y="revenue",
+    title="Vendas por Região"
 )
 
-# contar clientes por grupo
-freq_distribution = (
-    orders_per_client
-    .groupby("frequency_group")
+st.plotly_chart(fig_region, width="stretch")
+
+# -------------------------
+# VENDAS POR TIPO DE CLIENTE
+# -------------------------
+st.subheader("Vendas por Tipo de Cliente")
+
+sales_retail = (
+    sales_filtered
+    .groupby("retail_type")["revenue"]
+    .sum()
+    .reset_index()
+)
+
+fig_retail = px.bar(
+    sales_retail,
+    x="retail_type",
+    y="revenue",
+    title="Vendas por Tipo de Cliente"
+)
+
+st.plotly_chart(fig_retail, width="stretch")
+
+# -------------------------
+# NOVOS CLIENTES POR ANO
+# -------------------------
+st.subheader("Novos Clientes por Ano")
+
+new_clients = (
+    clients[clients["start_year"].isin(selected_years)]
+    .groupby("start_year")
     .size()
-    .reset_index(name="num_clients")
+    .reset_index(name="new_clients")
 )
 
-# gráfico
-fig_freq = px.bar(
-    freq_distribution,
-    x="frequency_group",
-    y="num_clients",
-    title="Clientes por Frequência de Compra",
+fig_clients = px.bar(
+    new_clients,
+    x="start_year",
+    y="new_clients",
+    title="Novos Clientes por Ano",
     labels={
-        "frequency_group": "Frequência de Compra",
-        "num_clients": "Número de Clientes"
+        "start_year": "Ano",
+        "new_clients": "Número de Novos Clientes"
     }
 )
 
-st.plotly_chart(fig_freq, width="stretch")
+st.plotly_chart(fig_clients, width="stretch")
