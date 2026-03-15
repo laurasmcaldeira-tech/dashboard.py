@@ -147,6 +147,9 @@ st.markdown("---")
 # -------------------------
 st.header("📈 Evolução das Vendas")
 
+# -------------------------
+# Evolução mensal
+# -------------------------
 monthly_sales = (
     sales_filtered
     .groupby(["year", "month"])["revenue"]
@@ -165,8 +168,17 @@ fig_month = px.line(
 
 fig_month.update_traces(line=dict(width=3))
 
+fig_month.update_layout(
+    xaxis_title="Mês",
+    yaxis_title="Vendas (€)"
+)
+
 st.plotly_chart(fig_month, width="stretch")
 
+
+# -------------------------
+# Comparação anual
+# -------------------------
 year_sales = (
     sales_filtered
     .groupby("year")["revenue"]
@@ -174,12 +186,22 @@ year_sales = (
     .reset_index()
 )
 
+year_sales = year_sales.sort_values("year")
+
 fig_year = px.bar(
     year_sales,
     x="year",
     y="revenue",
     color_discrete_sequence=[COLOR_PRIMARY],
     title="Comparação de Vendas por Ano"
+)
+
+# garantir apenas anos inteiros no eixo
+fig_year.update_xaxes(type="category")
+
+fig_year.update_layout(
+    xaxis_title="Ano",
+    yaxis_title="Vendas (€)"
 )
 
 st.plotly_chart(fig_year, width="stretch")
