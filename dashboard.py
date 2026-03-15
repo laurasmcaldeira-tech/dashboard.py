@@ -259,24 +259,14 @@ for year in selected_years:
         }
     )
 
-    # adicionar ranking
     top_clients.insert(0, "Ranking", range(1, len(top_clients)+1))
 
-    # formatação da tabela
-    styled_table = (
-        top_clients.style
-        .format({"Vendas (€)": "€{:,.0f}"})
-        .background_gradient(
-            subset=["Vendas (€)"],
-            cmap="Reds"
-        )
-        .set_properties(**{
-            "text-align": "center"
-        })
+    top_clients["Vendas (€)"] = top_clients["Vendas (€)"].map(
+        lambda x: f"€{x:,.0f}"
     )
 
     st.dataframe(
-        styled_table,
+        top_clients,
         use_container_width=True,
         hide_index=True
     )
