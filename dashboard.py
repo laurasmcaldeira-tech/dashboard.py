@@ -232,9 +232,9 @@ with col2:
 st.markdown("---")
 
 # -------------------------
-# TOP 10 CLIENTES POR ANO
+# TOP 3 CLIENTES POR ANO
 # -------------------------
-st.header("🏆 Top 10 Clientes por Vendas")
+st.header("🏆 Top 3 Clientes por Vendas")
 
 medals = ["🥇", "🥈", "🥉"]
 
@@ -252,15 +252,9 @@ for year in selected_years:
     top_clients = top_clients.sort_values(
         by="revenue",
         ascending=False
-    ).head(10)
+    ).head(3)
 
-    # criar ranking
-    top_clients["Ranking"] = range(1, len(top_clients) + 1)
-
-    # medalhas para top 3
-    top_clients["Posição"] = top_clients["Ranking"].apply(
-        lambda x: medals[x-1] if x <= 3 else f"{x}º"
-    )
+    top_clients["Posição"] = medals[:len(top_clients)]
 
     top_clients = top_clients.rename(
         columns={
@@ -269,7 +263,6 @@ for year in selected_years:
         }
     )
 
-    # formatar euros
     top_clients["Vendas (€)"] = top_clients["Vendas (€)"].map(
         lambda x: f"€{x:,.0f}"
     )
