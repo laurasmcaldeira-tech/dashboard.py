@@ -254,45 +254,87 @@ with col2:
 st.markdown("---")
 
 # -------------------------
-# TOP 3 CLIENTES POR ANO
+# CLIENTES
 # -------------------------
-st.header("🏆 Top 3 Clientes por Vendas")
+st.header("👥 Clientes")
 
+# -------------------------
+# Novos clientes por ano
+# -------------------------
+new_clients = (
+    clients
+    .groupby("start_year")
+    .size()
+    .reset_index(name="new_clients")
+)
+
+# aplicar filtro de anos selecionados
+new_clients = new_clients[new_clients["start_year"].isin(selected_years)]
+
+new_clients = new_clients.sort_values("start_year")
+
+fig_clients = px.bar(
+    new_clients,
+    x="start_year",
+    y="new_clients",
+    color_discrete_sequence=[COLOR_PRIMARY],
+    title="Número de Novos Clientes por Ano"
+)
+
+fig_clients.update_layout(
+    xaxis_title="Ano",
+    yaxis_title="Novos Clientes"
+)
+
+fig_clients.update_xaxes(type="category")
+
+# -------------------------
+# TOP 3 clientes
+# -------------------------
 medals = ["🥇", "🥈", "🥉"]
 
-for year in selected_years:
+col1, col2 = st.columns(2)
 
-    st.subheader(f"📅 Ano {year}")
+with col1:
+    st.plotly_chart(fig_clients, width="stretch")
 
-    top_clients = (
-        sales_filtered[sales_filtered["year"] == year]
-        .groupby("client_id")["revenue"]
-        .sum()
-        .reset_index()
-    )
+with col2:
 
-    top_clients = top_clients.sort_values(
-        by="revenue",
-        ascending=False
-    ).head(3)
+    st.subheader("🏆 Top 3 Clientes por Vendas")
 
-    top_clients["Posição"] = medals[:len(top_clients)]
+    for year in selected_years:
 
-    top_clients = top_clients.rename(
-        columns={
-            "client_id": "Cliente ID",
-            "revenue": "Vendas (€)"
-        }
-    )
+        st.markdown(f"**📅 Ano {year}**")
 
-    top_clients["Vendas (€)"] = top_clients["Vendas (€)"].map(
-        lambda x: f"€{x:,.0f}"
-    )
+        top_clients = (
+            sales_filtered[sales_filtered["year"] == year]
+            .groupby("client_id")["revenue"]
+            .sum()
+            .reset_index()
+        )
 
-    table = top_clients[["Posição", "Cliente ID", "Vendas (€)"]]
+        top_clients = top_clients.sort_values(
+            by="revenue",
+            ascending=False
+        ).head(3)
 
-    st.dataframe(
-        table,
-        use_container_width=True,
-        hide_index=True
-    )
+        top_clients["Posição"] = medals[:len(top_clients)]
+
+        top_clients = top_clients.rename(
+            columns={
+                "client_id": "Cliente ID",
+                "revenue": "Vendas (€)"
+            }
+        )
+
+        top_clients["Vendas (€)"] = top_clients["Vendas (€)"].map(
+            lambda x: f"€{x:,.0f}"
+        )
+
+        table = top_clients[["Posição", "Cliente ID", "Vendas (€)"]]
+
+        st.dataframe(
+            table,
+            use_container_width=True,
+            hide_index=True
+        )
