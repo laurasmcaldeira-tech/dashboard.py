@@ -3,18 +3,30 @@ import pandas as pd
 import plotly.express as px
 
 # -------------------------
-# Configuração da página
+# CONFIGURAÇÃO DA PÁGINA
 # -------------------------
-st.set_page_config(page_title="(Nome da empresa)", layout="wide")
+st.set_page_config(page_title="Wine Sales Dashboard", layout="wide")
 
-st.title("(Nome da empresa)")
+COLOR_PRIMARY = "#7B1E3A"
+COLOR_SECONDARY = "#C49A6C"
+
+st.title("🍷 Wine Sales Dashboard")
 st.caption("Garrafeira B2B – Dashboard de Vendas")
 
+st.markdown("---")
+
 # -------------------------
-# Carregar dados
+# CARREGAR DADOS
 # -------------------------
-sales = pd.read_excel("wine_dashboard_fictitious_data_dashboard_full.xlsx", sheet_name="sales")
-clients = pd.read_excel("wine_dashboard_fictitious_data_dashboard_full.xlsx", sheet_name="clients")
+sales = pd.read_excel(
+    "wine_dashboard_fictitious_data_dashboard_full.xlsx",
+    sheet_name="sales"
+)
+
+clients = pd.read_excel(
+    "wine_dashboard_fictitious_data_dashboard_full.xlsx",
+    sheet_name="clients"
+)
 
 sales["date"] = pd.to_datetime(sales["date"])
 sales["year"] = sales["date"].dt.year
@@ -25,7 +37,6 @@ sales["month"] = sales["date"].dt.month
 # -------------------------
 st.sidebar.header("Filtros")
 
-# filtro anos
 years = sorted(sales["year"].unique())
 
 selected_years = st.sidebar.multiselect(
@@ -34,7 +45,6 @@ selected_years = st.sidebar.multiselect(
     default=years
 )
 
-# filtro região
 regions = sorted(sales["region"].unique())
 
 selected_regions = st.sidebar.multiselect(
@@ -43,7 +53,6 @@ selected_regions = st.sidebar.multiselect(
     default=regions
 )
 
-# filtro tipo cliente
 retail_types = sorted(sales["retail_type"].unique())
 
 selected_retail = st.sidebar.multiselect(
@@ -57,7 +66,7 @@ if not selected_years:
     st.stop()
 
 # -------------------------
-# FILTRO DATAFRAME
+# FILTRAR DATAFRAME
 # -------------------------
 sales_filtered = sales[
     (sales["year"].isin(selected_years)) &
@@ -70,6 +79,8 @@ st.caption(f"Anos selecionados: {selected_years}")
 # -------------------------
 # KPIs
 # -------------------------
+st.header("📊 Performance de Vendas")
+
 total_sales = sales_filtered["revenue"].sum()
 
 num_orders = sales_filtered["order_id"].nunique()
@@ -78,7 +89,6 @@ num_clients = sales_filtered["client_id"].nunique()
 
 ticket_medio = total_sales / num_orders if num_orders > 0 else 0
 
-# crescimento vs ano anterior
 current_year = max(selected_years)
 prev_year = current_year - 1
 
@@ -87,9 +97,6 @@ prev_sales = sales[sales["year"] == prev_year]["revenue"].sum()
 
 growth = ((current_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
 
-# -------------------------
-# Mostrar KPIs
-# -------------------------
 col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("Vendas Totais (€)", f"{total_sales:,.0f}")
@@ -97,22 +104,25 @@ col2.metric("Crescimento (%)", f"{growth:.1f}%")
 col3.metric("Número de Clientes", num_clients)
 col4.metric("Ticket Médio (€)", f"{ticket_medio:,.2f}")
 
-st.divider()
+st.markdown("---")
 
 # -------------------------
-# OBJETIVO 2026 (+20%)
+# OBJETIVO 2026
 # -------------------------
-st.subheader("Vendas vs Objetivo 2026 (+20%)")
+st.header("🎯 Vendas vs Objetivo 2026 (+20%)")
 
 sales_2025 = sales[sales["year"] == 2025]["revenue"].sum()
+
 target_2026 = sales_2025 * 1.20
 
 sales_2026 = sales[sales["year"] == 2026]
+
 sales_2026_ytd = sales_2026["revenue"].sum()
 
 current_month = sales_2026["month"].max()
 
 expected_progress = current_month / 12
+
 expected_sales = target_2026 * expected_progress
 
 performance_ratio = sales_2026_ytd / expected_sales if expected_sales > 0 else 0
@@ -130,12 +140,12 @@ st.metric(
     f"{performance_ratio*100:.1f}%"
 )
 
-st.divider()
+st.markdown("---")
 
 # -------------------------
-# EVOLUÇÃO MENSAL
+# EVOLUÇÃO DAS VENDAS
 # -------------------------
-st.subheader("Evolução das Vendas (Mensal)")
+st.header("📈 Evolução das Vendas")
 
 monthly_sales = (
     sales_filtered
@@ -153,12 +163,9 @@ fig_month = px.line(
     title="Evolução das vendas por mês"
 )
 
-st.plotly_chart(fig_month, width="stretch")
+fig_month.update_traces(line=dict(width=3))
 
-# -------------------------
-# COMPARAÇÃO ANUAL
-# -------------------------
-st.subheader("Comparação de Vendas por Ano")
+st.plotly_chart(fig_month, width="stretch")
 
 year_sales = (
     sales_filtered
@@ -171,15 +178,18 @@ fig_year = px.bar(
     year_sales,
     x="year",
     y="revenue",
-    title="Vendas Totais por Ano"
+    color_discrete_sequence=[COLOR_PRIMARY],
+    title="Comparação de Vendas por Ano"
 )
 
 st.plotly_chart(fig_year, width="stretch")
 
+st.markdown("---")
+
 # -------------------------
-# VENDAS POR REGIÃO
+# SEGMENTAÇÃO
 # -------------------------
-st.subheader("Vendas por Região")
+st.header("🧭 Segmentação de Clientes")
 
 sales_region = (
     sales_filtered
@@ -192,15 +202,9 @@ fig_region = px.bar(
     sales_region,
     x="region",
     y="revenue",
+    color_discrete_sequence=[COLOR_PRIMARY],
     title="Vendas por Região"
 )
-
-st.plotly_chart(fig_region, width="stretch")
-
-# -------------------------
-# VENDAS POR TIPO DE CLIENTE
-# -------------------------
-st.subheader("Vendas por Tipo de Cliente")
 
 sales_retail = (
     sales_filtered
@@ -213,15 +217,24 @@ fig_retail = px.bar(
     sales_retail,
     x="retail_type",
     y="revenue",
+    color_discrete_sequence=[COLOR_SECONDARY],
     title="Vendas por Tipo de Cliente"
 )
 
-st.plotly_chart(fig_retail, width="stretch")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig_region, width="stretch")
+
+with col2:
+    st.plotly_chart(fig_retail, width="stretch")
+
+st.markdown("---")
 
 # -------------------------
-# NOVOS CLIENTES POR ANO
+# CLIENTES
 # -------------------------
-st.subheader("Novos Clientes por Ano")
+st.header("👥 Clientes")
 
 new_clients = (
     clients[clients["start_year"].isin(selected_years)]
@@ -234,11 +247,34 @@ fig_clients = px.bar(
     new_clients,
     x="start_year",
     y="new_clients",
-    title="Novos Clientes por Ano",
-    labels={
-        "start_year": "Ano",
-        "new_clients": "Número de Novos Clientes"
-    }
+    color_discrete_sequence=[COLOR_PRIMARY],
+    title="Novos Clientes por Ano"
 )
 
-st.plotly_chart(fig_clients, width="stretch")
+top_clients = (
+    sales_filtered
+    .groupby("client_id")["revenue"]
+    .sum()
+    .reset_index()
+)
+
+top_clients = top_clients.sort_values(
+    by="revenue",
+    ascending=False
+).head(10)
+
+fig_top_clients = px.bar(
+    top_clients,
+    x="client_id",
+    y="revenue",
+    color_discrete_sequence=[COLOR_SECONDARY],
+    title="Top 10 Clientes por Vendas"
+)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig_clients, width="stretch")
+
+with col2:
+    st.plotly_chart(fig_top_clients, width="stretch")
