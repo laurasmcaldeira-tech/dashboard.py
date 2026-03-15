@@ -5,12 +5,12 @@ import plotly.express as px
 # -------------------------
 # CONFIGURAÇÃO
 # -------------------------
-st.set_page_config(page_title="Wine Sales Dashboard", layout="wide")
+st.set_page_config(page_title="Cépula", layout="wide")
 
 COLOR_PRIMARY = "#7B1E3A"
 COLOR_SECONDARY = "#C49A6C"
 
-st.title("🍷 Wine Sales Dashboard")
+st.title("🍷 Cépula")
 st.caption("Garrafeira B2B – Dashboard de Vendas")
 
 st.markdown("---")
