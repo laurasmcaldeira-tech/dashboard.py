@@ -97,19 +97,28 @@ st.divider()
 # -------------------------
 # Evolução mensal das vendas
 # -------------------------
+# -------------------------
+# Evolução mensal das vendas
+# -------------------------
 st.subheader("Evolução das Vendas (Mensal)")
 
-monthly_sales = sales_year.groupby("month")["revenue"].sum().reset_index()
+monthly_sales = (
+    sales_filtered
+    .groupby(["year", "month"])["revenue"]
+    .sum()
+    .reset_index()
+)
 
 fig_month = px.line(
     monthly_sales,
     x="month",
     y="revenue",
+    color="year",
     markers=True,
-    title="Vendas por Mês"
+    title="Evolução das vendas por mês"
 )
 
-st.plotly_chart(fig_month, use_container_width=True)
+st.plotly_chart(fig_month, width="stretch")
 
 # -------------------------
 # Comparação entre anos
