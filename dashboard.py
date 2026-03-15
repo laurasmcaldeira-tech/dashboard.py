@@ -37,7 +37,7 @@ with col2:
     st.title("Wine Sales Dashboard")
     st.caption("Garrafeira B2B – Dashboard de Vendas")
 
-st.markdown("---")markdown("---")
+st.markdown("---")
 
 # -------------------------
 # CARREGAR DADOS
