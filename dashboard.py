@@ -74,7 +74,7 @@ sales_filtered = sales[
     (sales["retail_type"].isin(selected_retail))
 ]
 
-st.caption(f"Anos selecionados: {selected_years}")
+
 
 # -------------------------
 # KPIs
