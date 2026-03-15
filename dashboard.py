@@ -137,9 +137,9 @@ st.plotly_chart(fig_year, use_container_width=True)
 # -------------------------
 # Frequência de compra
 # -------------------------
-st.subheader("Distribuição da Frequência de Compra")
+st.subheader("Frequência de Compra dos Clientes")
 
-# número de encomendas por cliente nos anos selecionados
+# número de encomendas por cliente
 orders_per_client = (
     sales_filtered
     .groupby("client_id")["order_id"]
@@ -147,11 +147,34 @@ orders_per_client = (
     .reset_index(name="num_orders")
 )
 
-fig_freq = px.histogram(
-    orders_per_client,
-    x="num_orders",
-    nbins=20,
-    title="Número de Compras por Cliente"
+# criar faixas de frequência
+bins = [0, 1, 3, 6, 100]
+labels = ["1 compra", "2-3 compras", "4-6 compras", "7+ compras"]
+
+orders_per_client["frequency_group"] = pd.cut(
+    orders_per_client["num_orders"],
+    bins=bins,
+    labels=labels
+)
+
+# contar clientes por grupo
+freq_distribution = (
+    orders_per_client
+    .groupby("frequency_group")
+    .size()
+    .reset_index(name="num_clients")
+)
+
+# gráfico
+fig_freq = px.bar(
+    freq_distribution,
+    x="frequency_group",
+    y="num_clients",
+    title="Clientes por Frequência de Compra",
+    labels={
+        "frequency_group": "Frequência de Compra",
+        "num_clients": "Número de Clientes"
+    }
 )
 
 st.plotly_chart(fig_freq, width="stretch")
