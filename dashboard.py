@@ -232,49 +232,35 @@ with col2:
 st.markdown("---")
 
 # -------------------------
-# CLIENTES
+# TOP 10 CLIENTES POR ANO
 # -------------------------
-st.header("👥 Clientes")
+st.subheader("Top 10 Clientes por Vendas")
 
-new_clients = (
-    clients[clients["start_year"].isin(selected_years)]
-    .groupby("start_year")
-    .size()
-    .reset_index(name="new_clients")
-)
+for year in selected_years:
 
-fig_clients = px.bar(
-    new_clients,
-    x="start_year",
-    y="new_clients",
-    color_discrete_sequence=[COLOR_PRIMARY],
-    title="Novos Clientes por Ano"
-)
+    st.markdown(f"### Ano {year}")
 
-top_clients = (
-    sales_filtered
-    .groupby("client_id")["revenue"]
-    .sum()
-    .reset_index()
-)
+    top_clients = (
+        sales_filtered[sales_filtered["year"] == year]
+        .groupby("client_id")["revenue"]
+        .sum()
+        .reset_index()
+    )
 
-top_clients = top_clients.sort_values(
-    by="revenue",
-    ascending=False
-).head(10)
+    top_clients = top_clients.sort_values(
+        by="revenue",
+        ascending=False
+    ).head(10)
 
-fig_top_clients = px.bar(
-    top_clients,
-    x="client_id",
-    y="revenue",
-    color_discrete_sequence=[COLOR_SECONDARY],
-    title="Top 10 Clientes por Vendas"
-)
+    top_clients = top_clients.rename(
+        columns={
+            "client_id": "Cliente ID",
+            "revenue": "Vendas (€)"
+        }
+    )
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.plotly_chart(fig_clients, width="stretch")
-
-with col2:
-    st.plotly_chart(fig_top_clients, width="stretch")
+    st.dataframe(
+        top_clients,
+        use_container_width=True,
+        hide_index=True
+    )
