@@ -8,34 +8,32 @@ import os
 
 # configuração da página
 st.set_page_config(
-    page_title="Wine Sales Dashboard",
+    page_title="Cépula | Wine Sales Dashboard",
     page_icon="🍷",
     layout="wide"
 )
 
 # cores do dashboard
-COLOR_PRIMARY = "#7B1E3A"   # vinho
-COLOR_SECONDARY = "#C49A6C" # dourado
+COLOR_PRIMARY = "#7B1E3A"     # vinho
+COLOR_SECONDARY = "#C49A6C"   # dourado
 
-# caminho para assets
+# caminho para o logótipo
 BASE_DIR = os.path.dirname(__file__)
-LOGO_PATH = os.path.join(BASE_DIR, "assets", "logo.png")
+LOGO_PATH = os.path.join(BASE_DIR, "assets", "Logo Cepula.png")
 
 # -------------------------
 # CABEÇALHO DO DASHBOARD
 # -------------------------
 
-logo_path = "assets/logo.png"
-
 col1, col2 = st.columns([1,4])
 
 with col1:
-    if os.path.exists(logo_path):
-        st.image(logo_path, width=120)
+    if os.path.exists(LOGO_PATH):
+        st.image(LOGO_PATH, width=120)
 
 with col2:
-    st.title("Wine Sales Dashboard")
-    st.caption("Garrafeira B2B – Dashboard de Vendas")
+    st.title("Cépula — Wine Sales Dashboard")
+    st.caption("Dashboard de Vendas | Garrafeira B2B")
 
 st.markdown("---")
 
