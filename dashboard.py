@@ -259,8 +259,8 @@ for year in selected_years:
         }
     )
 
-st.dataframe(
-    top_clients.style.format({"Vendas (€)": "€{:,.0f}"}),
-    use_container_width=True,
-    hide_index=True
-)
+   st.dataframe(
+        top_clients,
+        use_container_width=True,
+        hide_index=True
+    )
