@@ -259,7 +259,7 @@ for year in selected_years:
         }
     )
 
-   st.dataframe(
+    st.dataframe(
         top_clients,
         use_container_width=True,
         hide_index=True
