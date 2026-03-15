@@ -94,9 +94,7 @@ st.write(f"Vendas atuais: €{total_sales:,.0f}")
 
 st.divider()
 
-# -------------------------
-# Evolução mensal das vendas
-# -------------------------
+
 # -------------------------
 # Evolução mensal das vendas
 # -------------------------
@@ -141,12 +139,19 @@ st.plotly_chart(fig_year, use_container_width=True)
 # -------------------------
 st.subheader("Distribuição da Frequência de Compra")
 
-orders_per_client = sales_year.groupby("client_id")["order_id"].count()
+# número de encomendas por cliente nos anos selecionados
+orders_per_client = (
+    sales_filtered
+    .groupby("client_id")["order_id"]
+    .count()
+    .reset_index(name="num_orders")
+)
 
 fig_freq = px.histogram(
     orders_per_client,
+    x="num_orders",
     nbins=20,
     title="Número de Compras por Cliente"
 )
 
-st.plotly_chart(fig_freq, use_container_width=True)
+st.plotly_chart(fig_freq, width="stretch")
