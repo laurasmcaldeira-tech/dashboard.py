@@ -1,17 +1,37 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
 # -------------------------
 # CONFIGURAÇÃO
 # -------------------------
-st.set_page_config(page_title="Cépula", layout="wide")
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import os
 
-COLOR_PRIMARY = "#7B1E3A"
-COLOR_SECONDARY = "#C49A6C"
+# configuração da página
+st.set_page_config(
+    page_title="Wine Sales Dashboard",
+    page_icon="🍷",
+    layout="wide"
+)
 
-st.title("🍷 Cépula")
-st.caption("Garrafeira B2B – Dashboard de Vendas")
+# cores do dashboard
+COLOR_PRIMARY = "#7B1E3A"   # vinho
+COLOR_SECONDARY = "#C49A6C" # dourado
+
+# caminho para assets
+BASE_DIR = os.path.dirname(__file__)
+LOGO_PATH = os.path.join(BASE_DIR, "assets", "logo.png")
+
+# -------------------------
+# CABEÇALHO DO DASHBOARD
+# -------------------------
+col1, col2 = st.columns([1,4])
+
+with col1:
+    st.image(LOGO_PATH, width=120)
+
+with col2:
+    st.title("Wine Sales Dashboard")
+    st.caption("Garrafeira B2B – Dashboard de Vendas")
 
 st.markdown("---")
 
