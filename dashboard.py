@@ -17,37 +17,55 @@ sales = pd.read_excel("wine_dashboard_fictitious_data_5years.xlsx", sheet_name="
 clients = pd.read_excel("wine_dashboard_fictitious_data_5years.xlsx", sheet_name="clients")
 
 # -------------------------
-# Filtros
+# Converter data
+# -------------------------
+sales["date"] = pd.to_datetime(sales["date"])
+
+# -------------------------
+# Filtro de anos
 # -------------------------
 st.sidebar.header("Filtros")
 
-year_filter = st.sidebar.selectbox(
-    "Selecionar Ano",
-    sorted(sales["year"].unique())
+years = sorted(sales["date"].dt.year.unique())
+
+selected_years = st.sidebar.multiselect(
+    "Selecionar anos",
+    years,
+    default=years
 )
 
-sales_year = sales[sales["year"] == year_filter]
+if not selected_years:
+    st.warning("Selecione pelo menos um ano.")
+    st.stop()
+
+# Filtrar dataframe
+sales_filtered = sales[sales["date"].dt.year.isin(selected_years)]
 
 # -------------------------
-# KPIs principais
+# KPIs
 # -------------------------
-total_sales = sales_year["revenue"].sum()
-num_orders = sales_year["order_id"].nunique()
-num_clients = sales_year["client_id"].nunique()
-ticket_medio = total_sales / num_orders
-freq_compra = num_orders / num_clients
+total_sales = sales_filtered["revenue"].sum()
+
+num_orders = sales_filtered["order_id"].nunique()
+
+num_clients = sales_filtered["client_id"].nunique()
+
+ticket_medio = total_sales / num_orders if num_orders > 0 else 0
+
+freq_compra = num_orders / num_clients if num_clients > 0 else 0
 
 # Crescimento vs ano anterior
-prev_year_sales = sales[sales["year"] == year_filter - 1]["revenue"].sum()
+current_year = max(selected_years)
+prev_year = current_year - 1
 
-if prev_year_sales > 0:
-    growth = (total_sales - prev_year_sales) / prev_year_sales * 100
-else:
-    growth = 0
+current_sales = sales[sales["year"] == current_year]["revenue"].sum()
+prev_sales = sales[sales["year"] == prev_year]["revenue"].sum()
+
+growth = ((current_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
 
 # Objetivo de crescimento +20%
-target_sales = prev_year_sales * 1.2
-progress = total_sales / target_sales if target_sales > 0 else 0
+target_sales = prev_sales * 1.2
+progress = current_sales / target_sales if target_sales > 0 else 0
 
 # -------------------------
 # Mostrar KPIs
