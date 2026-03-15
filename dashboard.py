@@ -8,7 +8,7 @@ import os
 
 # configuração da página
 st.set_page_config(
-    page_title="Cépula | Wine Sales Dashboard",
+    page_title="Cépula | Garrafeira de Vinhos",
     page_icon="🍷",
     layout="wide"
 )
@@ -32,7 +32,7 @@ with col1:
         st.image(LOGO_PATH, width=120)
 
 with col2:
-    st.title("Cépula — Wine Sales Dashboard")
+    st.title("Cépula | Garrafeira de Vinhos")
     st.caption("Dashboard de Vendas | Garrafeira B2B")
 
 st.markdown("---")
